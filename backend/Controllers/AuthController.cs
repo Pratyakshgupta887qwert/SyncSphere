@@ -1,44 +1,48 @@
 using Microsoft.AspNetCore.Mvc;
-using Google.Apis.Auth; // You need 'dotnet add package Google.Apis.Auth'
-using SyncSphere.Models;
 using MongoDB.Driver;
+using SyncSphere.Models;
 
-[ApiController]
-[Route("api/[controller]")]
-public class AuthController : ControllerBase
+namespace SyncSphere.Controllers
 {
-    private readonly IMongoCollection<User> _users;
-
-    public AuthController(IMongoClient client) 
+    [ApiController]
+    [Route("api/[controller]")]
+    public class AuthController : ControllerBase
     {
-        var database = client.GetDatabase("SyncSphereDB");
-        _users = database.GetCollection<User>("Users");
-    }
+        private readonly IMongoCollection<User> _users;
 
-    [HttpPost("google-login")]
-    public async Task<IActionResult> GoogleLogin([FromBody] string idToken)
-    {
-        try
+        public AuthController(IMongoClient client)
         {
-            // 1. Verify token with Google
-            var payload = await GoogleJsonWebSignature.ValidateAsync(idToken);
-            
-            // 2. Check if user exists in MongoDB
-            var user = await _users.Find(u => u.Email == payload.Email).FirstOrDefaultAsync();
+            var database = client.GetDatabase("SyncSphereDB");
+            _users = database.GetCollection<User>("Users");
+        }
 
-            if (user == null)
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterDto dto)
+        {
+            // Check if user already exists
+            var existingUser = await _users.Find(u => u.Email == dto.Email).FirstOrDefaultAsync();
+            if (existingUser != null) return BadRequest("User already exists!");
+
+            var newUser = new User
             {
-                // 3. New User? Create them!
-                user = new User { 
-                    Email = payload.Email, 
-                    Name = payload.Name, 
-                    Picture = payload.Picture 
-                };
-                await _users.InsertOneAsync(user);
-            }
+                Name = dto.Name,
+                Email = dto.Email,
+                Password = dto.Password // In a real app, you would hash this!
+            };
+
+            await _users.InsertOneAsync(newUser);
+            return Ok(newUser);
+        }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginDto dto)
+        {
+            // Find user with matching email AND password
+            var user = await _users.Find(u => u.Email == dto.Email && u.Password == dto.Password).FirstOrDefaultAsync();
+            
+            if (user == null) return Unauthorized("Invalid Email or Password");
 
             return Ok(user);
         }
-        catch { return BadRequest("Invalid Token"); }
     }
 }

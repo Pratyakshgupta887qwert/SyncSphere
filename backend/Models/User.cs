@@ -8,9 +8,13 @@ namespace SyncSphere.Models
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string? Id { get; set; }
-        public string Email { get; set; } = null!;
+
         public string Name { get; set; } = null!;
-        public string Picture { get; set; } = null!;
-        public DateTime LastLogin { get; set; } = DateTime.UtcNow;
+        public string Email { get; set; } = null!;
+        
+        // This is where we will store the user's password
+        public string Password { get; set; } = null!; 
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

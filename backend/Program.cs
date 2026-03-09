@@ -1,26 +1,28 @@
 using SyncSphere.Services;
 using SyncSphere.Settings;
+using MongoDB.Driver;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. ADD SERVICES (The "Setup" Phase)
-
-// This line tells the app to find your MongoDB link in 'appsettings.json'
+// --- 1. CONFIGURATION & DATABASE ---
 builder.Services.Configure<MongoDbSettings>(
     builder.Configuration.GetSection("MongoDbSettings"));
 
-// This registers your Meeting Logic so the Controllers can use it
-builder.Services.AddSingleton<MeetingsService>();
+builder.Services.AddSingleton<IMongoClient>(sp => {
+    // This looks for "ConnectionString" inside "MongoDbSettings" in your appsettings.json
+    var connString = builder.Configuration.GetValue<string>("MongoDbSettings:ConnectionString");
+    return new MongoClient(connString);
+});
 
-// This starts your Reminder background timer
+// --- 2. REGISTER SERVICES ---
+builder.Services.AddSingleton<MeetingsService>();
 builder.Services.AddHostedService<ReminderBackgroundService>();
 
-builder.Services.AddControllers(); // Required for [ApiController] to work
+builder.Services.AddControllers(); 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(); // This gives you the testing UI
+builder.Services.AddSwaggerGen();
 
-// 2. SECURITY (CORS)
-// This allows your React app (Port 5173) to send data to this API
+// --- 3. SECURITY (CORS) ---
 builder.Services.AddCors(options => {
     options.AddPolicy("AllowReact", policy => {
         policy.WithOrigins("http://localhost:5173")
@@ -31,21 +33,22 @@ builder.Services.AddCors(options => {
 
 var app = builder.Build();
 
-// 3. CONFIGURE THE ENGINE (The "Running" Phase)
+// --- 4. MIDDLEWARE PIPELINE ---
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// FORCE SWAGGER (Moved outside the IF block for testing)
+app.UseSwagger();
+app.UseSwaggerUI(c => {
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "SyncSphere API V1");
+    c.RoutePrefix = "swagger"; // This makes it available at /swagger
+});
 
-// Important: CORS must come before Authorization
 app.UseCors("AllowReact");
 
-app.UseHttpsRedirection();
-app.UseAuthorization();
+// If you are on Localhost, sometimes HTTPS redirection causes 404s. 
+// Comment this next line out if it still doesn't work.
+// app.UseHttpsRedirection(); 
 
-// This line tells .NET to look at your "Controllers" folder for URLs
+app.UseAuthorization();
 app.MapControllers();
 
 app.Run();

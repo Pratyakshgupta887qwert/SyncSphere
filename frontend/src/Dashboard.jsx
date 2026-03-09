@@ -1,41 +1,50 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from './Header';
-import { Calendar, Clock, Plus, Globe, LogOut } from 'lucide-react';
+import { Calendar, Clock, Plus, Globe, LogOut, X } from 'lucide-react';
 import axios from 'axios';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   
   // State Management
-  const [user, setUser] = useState({ name: "Aknp", email: "aknp@gla.ac.in" });
+  const [user, setUser] = useState(null);
   const [meetings, setMeetings] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [viewDate, setViewDate] = useState(new Date());
 
-  // 1. LIVE CLOCK EFFECT
+  // 1. AUTH CHECK & INITIAL LOAD
+  useEffect(() => {
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      const userData = JSON.parse(savedUser);
+      setUser(userData);
+      fetchMeetings(userData.email);
+    } else {
+      navigate('/auth'); 
+    }
+  }, [navigate]);
+
+  // 2. LIVE CLOCK EFFECT
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  // 2. FETCH DATA EFFECT
-  useEffect(() => {
-    const fetchMeetings = async () => {
-      try {
-        const response = await axios.get(`http://localhost:5000/api/meetings?email=${user.email}`);
-        setMeetings(response.data);
-      } catch (error) {
-        console.error("Error fetching meetings:", error);
-      }
-    };
-    fetchMeetings();
-  }, [user.email]);
+  // 3. FETCH DATA FUNCTION
+  const fetchMeetings = async (email) => {
+    try {
+      const response = await axios.get(`http://localhost:5162/api/meetings?email=${email}`);
+      setMeetings(response.data);
+    } catch (error) {
+      console.error("Error fetching meetings:", error);
+    }
+  };
 
-  // 3. HANDLERS
+  // 4. HANDLERS
   const handleLogout = () => {
-    localStorage.removeItem('userEmail');
+    localStorage.removeItem('user');
     navigate('/');
   };
 
@@ -51,26 +60,28 @@ const Dashboard = () => {
     setViewDate(new Date());
   };
 
+  if (!user) return null;
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       <Header onLogout={handleLogout} />
 
-      <main className="flex-grow px-8 py-12 max-w-7xl mx-auto w-full">
+      <main className="flex-grow px-8 py-12 max-w-7xl mx-auto w-full relative">
         {/* Welcome Bar */}
         <div className="flex justify-between items-end mb-12 border-b border-gray-200 pb-8">
-          <div>
-            <span className="text-red-600 font-black uppercase tracking-widest text-xs">Member Dashboard</span>
-            <h1 className="text-4xl font-serif font-medium text-slate-900 mt-2">
-              Welcome back, {user.name}
-            </h1>
+          <div className="flex items-center gap-6">
+            {/* User Initial Circle (Replacement for Google Picture) */}
+            <div className="w-16 h-16 rounded-2xl bg-red-700 text-white flex items-center justify-center text-2xl font-black shadow-lg shadow-red-200">
+              {user.name?.charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <span className="text-red-600 font-black uppercase tracking-widest text-xs">Member Dashboard</span>
+              <h1 className="text-4xl font-serif font-medium text-slate-900 mt-2">
+                Welcome back, {user.name}
+              </h1>
+            </div>
           </div>
           <div className="flex gap-4">
-            {/* <button 
-              onClick={handleLogout}
-              className="border-2 border-slate-900 text-slate-900 px-6 py-3 font-black uppercase tracking-widest hover:bg-slate-900 hover:text-white transition-all flex items-center gap-2"
-            >
-              <LogOut size={18} /> Logout
-            </button> */}
             <button 
               onClick={() => setShowModal(true)}
               className="bg-red-700 text-white px-6 py-3 font-black uppercase tracking-widest hover:bg-red-800 transition-all flex items-center gap-2 shadow-lg shadow-red-200"
@@ -87,7 +98,7 @@ const Dashboard = () => {
             {meetings.length === 0 ? (
               <div className="bg-white border-2 border-dashed border-gray-200 rounded-xl p-20 text-center">
                 <Calendar className="mx-auto text-gray-300 mb-4" size={48} />
-                <p className="text-gray-500 font-medium">No meetings found.</p>
+                <p className="text-gray-500 font-medium">No meetings found in Cloud.</p>
               </div>
             ) : (
               meetings.map((meeting) => (
@@ -98,7 +109,6 @@ const Dashboard = () => {
 
           {/* Right Sidebar */}
           <div className="space-y-6">
-            {/* DIGITAL CLOCK CARD */}
             <div className="bg-slate-900 text-white p-8 rounded-2xl shadow-2xl relative overflow-hidden group">
               <div className="absolute -right-4 -top-4 text-slate-800 opacity-20 group-hover:scale-110 transition-transform duration-700">
                 <Globe size={120} />
@@ -111,37 +121,25 @@ const Dashboard = () => {
                 <p className="text-4xl font-mono tracking-tighter mb-2">
                   {currentTime.toLocaleTimeString([], { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                 </p>
-                <div className="flex items-center gap-2 text-slate-400">
-                  <Globe size={12} />
-                  <p className="text-[10px] uppercase tracking-widest font-bold">
-                    {Intl.DateTimeFormat().resolvedOptions().timeZone.replace('_', ' ')}
-                  </p>
+                <div className="flex items-center gap-2 text-slate-400 text-[10px] uppercase font-bold">
+                  <Globe size={12} /> {Intl.DateTimeFormat().resolvedOptions().timeZone.replace('_', ' ')}
                 </div>
               </div>
             </div>
 
-            {/* CALENDAR CARD */}
             <div className="bg-white p-8 border border-gray-100 rounded-2xl shadow-sm">
               <div className="flex justify-between items-center mb-8">
                 <div className="flex flex-col">
                   <h4 className="font-black uppercase tracking-[0.15em] text-[11px] text-slate-900">
                     {viewDate.toLocaleString('default', { month: 'long' })} {viewDate.getFullYear()}
                   </h4>
-                  <button 
-                    onClick={handleGoToday}
-                    className="text-[9px] font-bold text-red-600 uppercase tracking-widest mt-1 hover:underline text-left"
-                  >
+                  <button onClick={handleGoToday} className="text-[9px] font-bold text-red-600 uppercase tracking-widest mt-1 hover:underline text-left">
                     Go to Today
                   </button>
                 </div>
-                
                 <div className="flex gap-2">
-                  <button onClick={handlePrevMonth} className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400 font-bold">
-                    {"<"}
-                  </button>
-                  <button onClick={handleNextMonth} className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400 font-bold">
-                    {">"}
-                  </button>
+                  <button onClick={handlePrevMonth} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 font-bold">{"<"}</button>
+                  <button onClick={handleNextMonth} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 font-bold">{">"}</button>
                 </div>
               </div>
 
@@ -152,37 +150,24 @@ const Dashboard = () => {
               </div>
 
               <div className="grid grid-cols-7 gap-y-1 text-center">
-                {/* Correct Empty Spacing for Start of Month */}
                 {Array.from({ length: new Date(viewDate.getFullYear(), viewDate.getMonth(), 1).getDay() }).map((_, i) => (
                   <div key={`empty-${i}`} className="py-2"></div>
                 ))}
-
-                {/* Actual Days */}
                 {Array.from({ length: new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0).getDate() }, (_, i) => i + 1).map(day => {
-                  const isToday = day === new Date().getDate() && 
-                                  viewDate.getMonth() === new Date().getMonth() &&
-                                  viewDate.getFullYear() === new Date().getFullYear();
+                  const isToday = day === new Date().getDate() && viewDate.getMonth() === new Date().getMonth() && viewDate.getFullYear() === new Date().getFullYear();
                   return (
-                    <div 
-                      key={day} 
-                      className={`relative py-2 text-xs font-bold cursor-default transition-all duration-300
-                        ${isToday ? 'text-white z-10' : 'text-slate-600 hover:text-red-600'}`}
-                    >
-                      {isToday && (
-                        <span className="absolute inset-1 bg-red-700 rounded-xl -z-10 shadow-lg shadow-red-200"></span>
-                      )}
+                    <div key={day} className={`relative py-2 text-xs font-bold ${isToday ? 'text-white z-10' : 'text-slate-600 hover:text-red-600'}`}>
+                      {isToday && <span className="absolute inset-1 bg-red-700 rounded-xl -z-10 shadow-lg shadow-red-200 animate-pulse"></span>}
                       {day}
                     </div>
                   );
                 })}
               </div>
-              
+
               <div className="mt-8 pt-6 border-t border-slate-50 flex justify-between items-center">
-                <div className="flex flex-col">
-                  <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Database Status</span>
-                  <span className="text-[10px] font-bold text-green-500 flex items-center gap-1">
-                    <span className="w-1 h-1 bg-green-500 rounded-full"></span> Connected
-                  </span>
+                <div className="flex flex-col text-[9px] font-black uppercase tracking-widest text-slate-400">
+                  <span>Database Status</span>
+                  <span className="text-green-500 flex items-center gap-1"><span className="w-1 h-1 bg-green-500 rounded-full"></span> Connected</span>
                 </div>
                 <div className="text-right">
                   <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block">Total Syncs</span>
@@ -192,6 +177,15 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
+
+        {/* --- ADD MEETING MODAL --- */}
+        {showModal && (
+          <AddMeetingModal 
+            user={user} 
+            onClose={() => setShowModal(false)} 
+            onRefresh={() => fetchMeetings(user.email)} 
+          />
+        )}
       </main>
 
       <footer className="bg-slate-900 text-white py-8 px-8 text-center mt-auto">
@@ -199,6 +193,62 @@ const Dashboard = () => {
           © 2026 PRATYAKSH GUPTA ● SYNCSPHERE PROJECT ENGINE
         </p>
       </footer>
+    </div>
+  );
+};
+
+// --- MODAL COMPONENT ---
+const AddMeetingModal = ({ user, onClose, onRefresh }) => {
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    title: '',
+    scheduledTime: '',
+    hostTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+  });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const payload = {
+        title: formData.title,
+        hostEmail: user.email,
+        scheduledTime: new Date(formData.scheduledTime).toISOString(),
+        hostTimezone: formData.hostTimezone
+      };
+      await axios.post('http://localhost:5162/api/meetings', payload);
+      onRefresh();
+      onClose();
+    } catch (err) {
+      alert("Error saving meeting. Ensure Backend is on.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex justify-center items-center p-4">
+      <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden">
+        <div className="bg-slate-900 p-6 text-white flex justify-between items-center">
+          <h2 className="font-black uppercase tracking-widest text-xs">New Meeting Sync</h2>
+          <button onClick={onClose}><X size={20} /></button>
+        </div>
+        <form onSubmit={handleSubmit} className="p-8 space-y-6">
+          <input 
+            required type="text" placeholder="Title" 
+            className="w-full p-4 bg-slate-50 border rounded-xl outline-none"
+            onChange={(e) => setFormData({...formData, title: e.target.value})}
+          />
+          <input 
+            required type="datetime-local" 
+            className="w-full p-4 bg-slate-50 border rounded-xl outline-none"
+            onChange={(e) => setFormData({...formData, scheduledTime: e.target.value})}
+          />
+          <button className="w-full bg-red-700 text-white py-4 rounded-xl font-black uppercase tracking-widest hover:bg-red-800 transition-all">
+            {loading ? "Syncing..." : "Schedule Sync"}
+          </button>
+        </form>
+      </div>
     </div>
   );
 };
