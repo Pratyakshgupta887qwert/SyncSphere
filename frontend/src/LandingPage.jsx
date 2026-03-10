@@ -1,7 +1,8 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Header from './Header';
 import { Globe, LayoutDashboard, BellRing, AlarmClock, Settings2 } from 'lucide-react';
+import Footer from './Footer';
 
 const FeatureCard = ({ icon, title, desc }) => (
   <div className="p-8 bg-white border border-gray-100 shadow-sm hover:border-red-200 transition-all duration-300">
@@ -12,12 +13,14 @@ const FeatureCard = ({ icon, title, desc }) => (
 );
 
 const LandingPage = () => {
+  const navigate = useNavigate();
+
   return (
-    <div className="min-h-screen bg-white font-sans text-gray-900">
+    <div className="min-h-screen bg-white font-sans text-gray-900 flex flex-col">
       <Header />
 
       {/* Hero Section */}
-      <section className="relative px-8 py-24 flex flex-col items-center text-center bg-gradient-to-b from-white to-slate-50">
+      <section className="relative px-8 py-24 flex flex-col items-center text-center bg-gradient-to-b from-white to-slate-50 flex-grow">
         <div className="max-w-4xl">
           <span className="text-red-600 font-black uppercase tracking-[0.3em] text-xs mb-4 block">
             The Ultimate Global Scheduler
@@ -35,15 +38,15 @@ const LandingPage = () => {
           <div className="mt-10 flex gap-4 justify-center">
             <Link to="/auth">
               <button className="bg-red-700 text-white px-10 py-4 font-black uppercase tracking-widest hover:bg-red-800 transition-all shadow-xl shadow-red-200 active:scale-95 mb-22">
-                Get Started & Shedule Your First Sync
+                Get Started & Schedule Your First Sync
               </button>
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Feature Grid: The 5 Main Pillars
-      <section className="px-8 py-24 max-w-7xl mx-auto">
+      {/* Feature Grid: The 5 Main Pillars */}
+      {/* <section className="px-8 py-24 max-w-7xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-3xl font-black uppercase tracking-tighter text-slate-900">Platform Features</h2>
           <div className="w-20 h-1 bg-red-600 mx-auto mt-4"></div>
@@ -77,58 +80,9 @@ const LandingPage = () => {
           />
         </div>
       </section> */}
-<footer className="bg-slate-900 text-white pt-16 pb-8 px-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 border-b border-slate-800 pb-12">
-          {/* Brand Info */}
-          <div className="col-span-1 md:col-span-1">
-            <h2 className="text-2xl font-black tracking-tighter text-red-500 mb-6">SYNCHSPHERE </h2>
-            <p className="text-slate-400 text-sm leading-relaxed">
-              Leading the way in global temporal management for high-performance engineering teams.
-            </p>
-          </div>
 
-          {/* Links */}
-          <div>
-            <h4 className="font-bold uppercase text-xs tracking-widest mb-6">Product</h4>
-            <ul className="space-y-4 text-sm text-slate-400">
-              <li><a href="#" className="hover:text-red-500 transition-colors">Scheduler</a></li>
-              <li><a href="#" className="hover:text-red-500 transition-colors">Timezone API</a></li>
-              <li><a href="#" className="hover:text-red-500 transition-colors">Integrations</a></li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-bold uppercase text-xs tracking-widest mb-6">Company</h4>
-            <ul className="space-y-4 text-sm text-slate-400">
-              <li><a href="#" className="hover:text-red-500 transition-colors">About Us</a></li>
-              <li><a href="#" className="hover:text-red-500 transition-colors">Impact Stories</a></li>
-              <li><a href="#" className="hover:text-red-500 transition-colors">Careers</a></li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-bold uppercase text-xs tracking-widest mb-6">Support</h4>
-            <ul className="space-y-4 text-sm text-slate-400">
-              <li><a href="#" className="hover:text-red-500 transition-colors">Help Center</a></li>
-              <li><a href="#" className="hover:text-red-500 transition-colors">API Docs</a></li>
-              <li><a href="#" className="hover:text-red-500 transition-colors">Contact</a></li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="mt-8 flex flex-col md:flex-row justify-between items-center text-[10px] font-bold uppercase tracking-widest text-slate-500">
-          <p>© 2026 PRATYAKSH GUPTA ● ALL RIGHTS RESERVED</p>
-          <div className="flex gap-8 mt-4 md:mt-0">
-            <a href="#" className="hover:text-white">Privacy Policy</a>
-            <a href="#" className="hover:text-white">Terms of Use</a>
-            <a href="#" className="hover:text-white">Cookie Settings</a>
-          </div>
-        </div>
-      </div>
-    </footer>
+      <Footer />
     </div>
-    
   );
 };
 

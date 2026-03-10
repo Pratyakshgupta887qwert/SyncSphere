@@ -4,6 +4,7 @@ import Header from './Header';
 import { Calendar, Clock, Plus, Globe, LogOut, X } from 'lucide-react';
 import axios from 'axios';
 import { DateTime } from 'luxon'; // Added Luxon for precision
+import Footer from './Footer';
 
 const TIMEZONES = [
   "UTC", "Asia/Kolkata", "America/New_York", "Europe/London", 
@@ -183,56 +184,7 @@ const Dashboard = () => {
         )}
       </main>
 
-      <footer className="bg-slate-900 text-white pt-16 pb-8 px-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 border-b border-slate-800 pb-12">
-          {/* Brand Info */}
-          <div className="col-span-1 md:col-span-1">
-            <h2 className="text-2xl font-black tracking-tighter text-red-500 mb-6">SYNCHSPHERE </h2>
-            <p className="text-slate-400 text-sm leading-relaxed">
-              Leading the way in global temporal management for high-performance engineering teams.
-            </p>
-          </div>
-
-          {/* Links */}
-          <div>
-            <h4 className="font-bold uppercase text-xs tracking-widest mb-6">Product</h4>
-            <ul className="space-y-4 text-sm text-slate-400">
-              <li><a href="#" className="hover:text-red-500 transition-colors">Scheduler</a></li>
-              <li><a href="#" className="hover:text-red-500 transition-colors">Timezone API</a></li>
-              <li><a href="#" className="hover:text-red-500 transition-colors">Integrations</a></li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-bold uppercase text-xs tracking-widest mb-6">Company</h4>
-            <ul className="space-y-4 text-sm text-slate-400">
-              <li><a href="#" className="hover:text-red-500 transition-colors">About Us</a></li>
-              <li><a href="#" className="hover:text-red-500 transition-colors">Impact Stories</a></li>
-              <li><a href="#" className="hover:text-red-500 transition-colors">Careers</a></li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-bold uppercase text-xs tracking-widest mb-6">Support</h4>
-            <ul className="space-y-4 text-sm text-slate-400">
-              <li><a href="#" className="hover:text-red-500 transition-colors">Help Center</a></li>
-              <li><a href="#" className="hover:text-red-500 transition-colors">API Docs</a></li>
-              <li><a href="#" className="hover:text-red-500 transition-colors">Contact</a></li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="mt-8 flex flex-col md:flex-row justify-between items-center text-[10px] font-bold uppercase tracking-widest text-slate-500">
-          <p>© 2026 PRATYAKSH GUPTA ● ALL RIGHTS RESERVED</p>
-          <div className="flex gap-8 mt-4 md:mt-0">
-            <a href="#" className="hover:text-white">Privacy Policy</a>
-            <a href="#" className="hover:text-white">Terms of Use</a>
-            <a href="#" className="hover:text-white">Cookie Settings</a>
-          </div>
-        </div>
-      </div>
-    </footer>
+      <Footer />
     </div>
   );
 };
