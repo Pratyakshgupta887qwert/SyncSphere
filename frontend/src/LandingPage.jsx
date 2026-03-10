@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import Header from './Header';
+import Header from './HeaderTemp';
 import { Globe, LayoutDashboard, BellRing, AlarmClock, Settings2 } from 'lucide-react';
 import Footer from './Footer';
 
