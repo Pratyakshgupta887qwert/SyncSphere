@@ -34,7 +34,7 @@ const LandingPage = () => {
           </p>
           <div className="mt-10 flex gap-4 justify-center">
             <Link to="/auth">
-              <button className="bg-red-700 text-white px-10 py-4 font-black uppercase tracking-widest hover:bg-red-800 transition-all shadow-xl shadow-red-200 active:scale-95 mb-20">
+              <button className="bg-red-700 text-white px-10 py-4 font-black uppercase tracking-widest hover:bg-red-800 transition-all shadow-xl shadow-red-200 active:scale-95 mb-22">
                 Get Started & Shedule Your First Sync
               </button>
             </Link>

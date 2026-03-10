@@ -19,6 +19,7 @@ yarn-error.log*
 bin/
 obj/
 appsettings.Development.json
+appsettings.json
 # Do not ignore the main appsettings.json, only the Dev one
 .vs/
 .vscode/
