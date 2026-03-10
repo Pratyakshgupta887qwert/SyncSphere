@@ -24,8 +24,10 @@ builder.Services.AddSwaggerGen();
 
 // --- 3. SECURITY (CORS) ---
 builder.Services.AddCors(options => {
-    options.AddPolicy("AllowReact", policy => {
-        policy.WithOrigins("http://localhost:5173")
+    // options.AddPolicy("AllowReact", policy => {
+    options.AddPolicy("AllowVercel", policy => {
+        // policy.WithOrigins("http://localhost:5173") // React dev server
+        policy.WithOrigins("https://sync-sphere.vercel.app") // Replace with your actual Vercel link
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -42,7 +44,8 @@ app.UseSwaggerUI(c => {
     c.RoutePrefix = "swagger"; // This makes it available at /swagger
 });
 
-app.UseCors("AllowReact");
+// FIX: Changed from "AllowReact" to "AllowVercel" to match the policy defined above
+app.UseCors("AllowVercel");
 
 // If you are on Localhost, sometimes HTTPS redirection causes 404s. 
 // Comment this next line out if it still doesn't work.
@@ -51,4 +54,6 @@ app.UseCors("AllowReact");
 app.UseAuthorization();
 app.MapControllers();
 
-app.Run();
+// This tells the server to listen to the dynamic port Render gives it
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5162";
+app.Run($"http://0.0.0.0:{port}");
