@@ -14,7 +14,7 @@ const Footer = () => {
               onClick={() => navigate('/')} 
               className="text-2xl font-black tracking-tighter text-red-500 mb-6 cursor-pointer uppercase"
             >
-              SYNCHSPHERE  external
+              SYNCHSPHERE
             </h2>
             <p className="text-slate-400 text-sm leading-relaxed">
               Leading the way in global temporal management for high-performance engineering teams.
