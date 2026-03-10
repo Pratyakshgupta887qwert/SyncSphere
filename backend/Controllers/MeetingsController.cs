@@ -4,7 +4,7 @@ using SyncSphere.Services;
 
 namespace SyncSphere.Controllers {
     [ApiController]
-    [Route("api/[controller]")] // This makes the URL /api/meetings
+    [Route("api/[controller]")] 
     public class MeetingsController : ControllerBase {
         private readonly MeetingsService _service;
 
@@ -18,5 +18,12 @@ namespace SyncSphere.Controllers {
 
         [HttpGet]
         public async Task<List<Meeting>> Get() => await _service.GetAllAsync();
+
+        // --- ADDED THIS FOR DELETE ---
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(string id) {
+            await _service.RemoveAsync(id);
+            return NoContent(); // Success, returns 204
+        }
     }
 }

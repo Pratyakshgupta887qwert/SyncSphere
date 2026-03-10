@@ -3,18 +3,21 @@ import { useNavigate } from 'react-router-dom';
 import Header from './Header';
 import { Calendar, Clock, Plus, Globe, LogOut, X } from 'lucide-react';
 import axios from 'axios';
+import { DateTime } from 'luxon'; // Added Luxon for precision
+
+const TIMEZONES = [
+  "UTC", "Asia/Kolkata", "America/New_York", "Europe/London", 
+  "Asia/Tokyo", "Australia/Sydney", "Asia/Dubai", "America/Los_Angeles"
+];
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  
-  // State Management
   const [user, setUser] = useState(null);
   const [meetings, setMeetings] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [viewDate, setViewDate] = useState(new Date());
 
-  // 1. AUTH CHECK & INITIAL LOAD
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
     if (savedUser) {
@@ -26,13 +29,11 @@ const Dashboard = () => {
     }
   }, [navigate]);
 
-  // 2. LIVE CLOCK EFFECT
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  // 3. FETCH DATA FUNCTION
   const fetchMeetings = async (email) => {
     try {
       const response = await axios.get(`http://localhost:5162/api/meetings?email=${email}`);
@@ -42,7 +43,17 @@ const Dashboard = () => {
     }
   };
 
-  // 4. HANDLERS
+  const handleDelete = async (id) => {
+    if (window.confirm("Remove this meeting from Cloud?")) {
+      try {
+        await axios.delete(`http://localhost:5162/api/meetings/${id}`);
+        fetchMeetings(user.email);
+      } catch (error) {
+        alert("Delete failed. Check backend.");
+      }
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('user');
     navigate('/');
@@ -67,10 +78,8 @@ const Dashboard = () => {
       <Header onLogout={handleLogout} />
 
       <main className="flex-grow px-8 py-12 max-w-7xl mx-auto w-full relative">
-        {/* Welcome Bar */}
         <div className="flex justify-between items-end mb-12 border-b border-gray-200 pb-8">
           <div className="flex items-center gap-6">
-            {/* User Initial Circle (Replacement for Google Picture) */}
             <div className="w-16 h-16 rounded-2xl bg-red-700 text-white flex items-center justify-center text-2xl font-black shadow-lg shadow-red-200">
               {user.name?.charAt(0).toUpperCase()}
             </div>
@@ -84,7 +93,7 @@ const Dashboard = () => {
           <div className="flex gap-4">
             <button 
               onClick={() => setShowModal(true)}
-              className="bg-red-700 text-white px-6 py-3 font-black uppercase tracking-widest hover:bg-red-800 transition-all flex items-center gap-2 shadow-lg shadow-red-200"
+              className="bg-red-700 text-white px-5 py-2 font-black uppercase tracking-widest hover:bg-red-800 transition-all flex items-center gap-1 shadow-lg shadow-red-200"
             >
               <Plus size={18} /> Add New Sync
             </button>
@@ -92,7 +101,6 @@ const Dashboard = () => {
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* Left: Meetings List */}
           <div className="lg:col-span-2 space-y-4">
             <h3 className="font-black uppercase tracking-widest text-sm text-slate-500 mb-4">Your Schedule</h3>
             {meetings.length === 0 ? (
@@ -102,12 +110,11 @@ const Dashboard = () => {
               </div>
             ) : (
               meetings.map((meeting) => (
-                <MeetingCard key={meeting.id} meeting={meeting} />
+                <MeetingCard key={meeting.id} meeting={meeting} onDelete={handleDelete} />
               ))
             )}
           </div>
 
-          {/* Right Sidebar */}
           <div className="space-y-6">
             <div className="bg-slate-900 text-white p-8 rounded-2xl shadow-2xl relative overflow-hidden group">
               <div className="absolute -right-4 -top-4 text-slate-800 opacity-20 group-hover:scale-110 transition-transform duration-700">
@@ -163,22 +170,10 @@ const Dashboard = () => {
                   );
                 })}
               </div>
-
-              <div className="mt-8 pt-6 border-t border-slate-50 flex justify-between items-center">
-                <div className="flex flex-col text-[9px] font-black uppercase tracking-widest text-slate-400">
-                  <span>Database Status</span>
-                  <span className="text-green-500 flex items-center gap-1"><span className="w-1 h-1 bg-green-500 rounded-full"></span> Connected</span>
-                </div>
-                <div className="text-right">
-                  <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block">Total Syncs</span>
-                  <span className="text-sm font-black text-slate-900">{meetings.length}</span>
-                </div>
-              </div>
             </div>
           </div>
         </div>
 
-        {/* --- ADD MEETING MODAL --- */}
         {showModal && (
           <AddMeetingModal 
             user={user} 
@@ -188,39 +183,94 @@ const Dashboard = () => {
         )}
       </main>
 
-      <footer className="bg-slate-900 text-white py-8 px-8 text-center mt-auto">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
-          © 2026 PRATYAKSH GUPTA ● SYNCSPHERE PROJECT ENGINE
-        </p>
-      </footer>
+      <footer className="bg-slate-900 text-white pt-16 pb-8 px-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 border-b border-slate-800 pb-12">
+          {/* Brand Info */}
+          <div className="col-span-1 md:col-span-1">
+            <h2 className="text-2xl font-black tracking-tighter text-red-500 mb-6">SYNCHSPHERE </h2>
+            <p className="text-slate-400 text-sm leading-relaxed">
+              Leading the way in global temporal management for high-performance engineering teams.
+            </p>
+          </div>
+
+          {/* Links */}
+          <div>
+            <h4 className="font-bold uppercase text-xs tracking-widest mb-6">Product</h4>
+            <ul className="space-y-4 text-sm text-slate-400">
+              <li><a href="#" className="hover:text-red-500 transition-colors">Scheduler</a></li>
+              <li><a href="#" className="hover:text-red-500 transition-colors">Timezone API</a></li>
+              <li><a href="#" className="hover:text-red-500 transition-colors">Integrations</a></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-bold uppercase text-xs tracking-widest mb-6">Company</h4>
+            <ul className="space-y-4 text-sm text-slate-400">
+              <li><a href="#" className="hover:text-red-500 transition-colors">About Us</a></li>
+              <li><a href="#" className="hover:text-red-500 transition-colors">Impact Stories</a></li>
+              <li><a href="#" className="hover:text-red-500 transition-colors">Careers</a></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-bold uppercase text-xs tracking-widest mb-6">Support</h4>
+            <ul className="space-y-4 text-sm text-slate-400">
+              <li><a href="#" className="hover:text-red-500 transition-colors">Help Center</a></li>
+              <li><a href="#" className="hover:text-red-500 transition-colors">API Docs</a></li>
+              <li><a href="#" className="hover:text-red-500 transition-colors">Contact</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="mt-8 flex flex-col md:flex-row justify-between items-center text-[10px] font-bold uppercase tracking-widest text-slate-500">
+          <p>© 2026 PRATYAKSH GUPTA ● ALL RIGHTS RESERVED</p>
+          <div className="flex gap-8 mt-4 md:mt-0">
+            <a href="#" className="hover:text-white">Privacy Policy</a>
+            <a href="#" className="hover:text-white">Terms of Use</a>
+            <a href="#" className="hover:text-white">Cookie Settings</a>
+          </div>
+        </div>
+      </div>
+    </footer>
     </div>
   );
 };
 
-// --- MODAL COMPONENT ---
 const AddMeetingModal = ({ user, onClose, onRefresh }) => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     scheduledTime: '',
-    hostTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+    hostTimezone: 'UTC'
   });
+
+  // LUXON PREVIEW LOGIC
+  const getISTPreview = () => {
+    if (!formData.scheduledTime) return null;
+    return DateTime.fromISO(formData.scheduledTime, { zone: "UTC" })
+      .setZone("Asia/Kolkata")
+      .toFormat("dd MMM, hh:mm a");
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
+      // FORCE LUXON TO TREAT INPUT AS UTC
+      const utcTime = DateTime.fromISO(formData.scheduledTime, { zone: "UTC" }).toUTC().toISO();
+
       const payload = {
         title: formData.title,
         hostEmail: user.email,
-        scheduledTime: new Date(formData.scheduledTime).toISOString(),
+        scheduledTime: utcTime,
         hostTimezone: formData.hostTimezone
       };
       await axios.post('http://localhost:5162/api/meetings', payload);
       onRefresh();
       onClose();
     } catch (err) {
-      alert("Error saving meeting. Ensure Backend is on.");
+      alert("Error saving meeting.");
     } finally {
       setLoading(false);
     }
@@ -234,16 +284,23 @@ const AddMeetingModal = ({ user, onClose, onRefresh }) => {
           <button onClick={onClose}><X size={20} /></button>
         </div>
         <form onSubmit={handleSubmit} className="p-8 space-y-6">
-          <input 
-            required type="text" placeholder="Title" 
-            className="w-full p-4 bg-slate-50 border rounded-xl outline-none"
-            onChange={(e) => setFormData({...formData, title: e.target.value})}
-          />
-          <input 
-            required type="datetime-local" 
-            className="w-full p-4 bg-slate-50 border rounded-xl outline-none"
-            onChange={(e) => setFormData({...formData, scheduledTime: e.target.value})}
-          />
+          <input required type="text" placeholder="Meeting Title" className="w-full p-4 bg-slate-50 border rounded-xl outline-none"
+            onChange={(e) => setFormData({...formData, title: e.target.value})} />
+          
+          <div>
+            <label className="text-[10px] font-black uppercase text-slate-400 mb-2 block tracking-widest">1. Original Meeting Time (UTC)</label>
+            <input required type="datetime-local" className="w-full p-4 bg-slate-50 border rounded-xl outline-none"
+              onChange={(e) => setFormData({...formData, scheduledTime: e.target.value})} />
+          </div>
+
+          {formData.scheduledTime && (
+            <div className="bg-red-50 p-4 rounded-xl border border-red-100 border-dashed">
+              <p className="text-[9px] font-black text-red-500 uppercase tracking-widest">2. Converted to Indian Time (IST)</p>
+              <p className="text-lg font-bold text-slate-900 mt-1">{getISTPreview()}</p>
+              <p className="text-[10px] text-slate-400 font-medium italic mt-1">* Added 5 hours 30 minutes automatically.</p>
+            </div>
+          )}
+
           <button className="w-full bg-red-700 text-white py-4 rounded-xl font-black uppercase tracking-widest hover:bg-red-800 transition-all">
             {loading ? "Syncing..." : "Schedule Sync"}
           </button>
@@ -253,19 +310,28 @@ const AddMeetingModal = ({ user, onClose, onRefresh }) => {
   );
 };
 
-const MeetingCard = ({ meeting }) => (
-  <div className="bg-white p-6 border-l-4 border-red-700 shadow-sm hover:shadow-md transition-all flex justify-between items-center group">
-    <div>
-      <h4 className="text-xl font-bold text-slate-800">{meeting.title}</h4>
-      <div className="flex gap-4 mt-2 text-sm text-gray-500 font-medium">
-        <span className="flex items-center gap-1"><Clock size={14} /> {new Date(meeting.scheduledTime).toLocaleTimeString()}</span>
-        <span className="flex items-center gap-1"><Globe size={14} /> {meeting.hostTimezone}</span>
+const MeetingCard = ({ meeting, onDelete }) => {
+  // LUXON CARD DISPLAY LOGIC
+  const istDisplay = DateTime.fromISO(meeting.scheduledTime).setZone("Asia/Kolkata").toFormat("dd MMM, hh:mm a");
+
+  return (
+    <div className="bg-white p-6 border-l-4 border-red-700 shadow-sm hover:shadow-md transition-all flex justify-between items-center group">
+      <div>
+        <h4 className="text-xl font-bold text-slate-800">{meeting.title}</h4>
+        <div className="flex flex-col mt-2 gap-1">
+          <div className="flex items-center gap-1 text-red-700 font-bold text-sm">
+            <Clock size={14} /> {istDisplay} (IST)
+          </div>
+          <div className="flex items-center gap-1 text-slate-400 text-[10px] uppercase font-bold tracking-tighter">
+            <Globe size={12} /> Ref: {DateTime.fromISO(meeting.scheduledTime).toUTC().toFormat("ccc, dd LLL yyyy HH:mm:ss")} UTC
+          </div>
+        </div>
       </div>
+      <button onClick={() => onDelete(meeting.id)} className="bg-slate-100 text-red-600 px-4 py-2 text-xs font-black uppercase tracking-widest hover:bg-red-700 hover:text-white transition-colors">
+        Delete Sync
+      </button>
     </div>
-    <button className="bg-slate-100 text-slate-600 px-4 py-2 text-xs font-black uppercase tracking-widest hover:bg-red-700 hover:text-white transition-colors">
-      Join Link
-    </button>
-  </div>
-);
+  );
+};
 
 export default Dashboard;
