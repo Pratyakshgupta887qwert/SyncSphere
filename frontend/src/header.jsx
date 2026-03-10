@@ -19,7 +19,7 @@ const Header = () => {
     return () => clearInterval(timer);
   }, [location]); // Re-check user when moving between pages
 
-  // 2. Updated Logout Logic
+  // 2. Updated Logout Logic.
   const handleLogout = () => {
     localStorage.removeItem('user');
     setUser(null);
