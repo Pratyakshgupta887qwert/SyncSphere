@@ -12,7 +12,6 @@ namespace SyncSphere.Models
         public string Name { get; set; } = null!;
         public string Email { get; set; } = null!;
         
-        // This is where we will store the user's password
         public string Password { get; set; } = null!; 
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

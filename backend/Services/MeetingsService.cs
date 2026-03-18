@@ -9,12 +9,9 @@ namespace SyncSphere.Services
     {
         private readonly IMongoCollection<Meeting> _meetingsCollection;
 
-        public MeetingsService(IOptions<MongoDbSettings> settings) 
+        public MeetingsService(IMongoDatabase database, IOptions<MongoDbSettings> settings) 
         {
-            var client = new MongoClient(settings.Value.ConnectionString);
-            var database = client.GetDatabase(settings.Value.DatabaseName);
             _meetingsCollection = database.GetCollection<Meeting>(settings.Value.MeetingsCollectionName);
-            Console.WriteLine("Successfully connected to MongoDB Atlas!");
         }
 
         // 1. CREATE
@@ -23,11 +20,7 @@ namespace SyncSphere.Services
 
         // 2. GET ALL (Filtered by Email)
         public async Task<List<Meeting>> GetByEmailAsync(string email) => 
-            await _meetingsCollection.Find(x => x.HostEmail == email).ToListAsync();
-
-        // 3. GET ALL (Unfiltered - optional)
-        public async Task<List<Meeting>> GetAllAsync() => 
-            await _meetingsCollection.Find(_ => true).ToListAsync();
+            await _meetingsCollection.Find(m => m.HostEmail == email).ToListAsync();
 
         // 4. DELETE (The missing piece!)
         public async Task RemoveAsync(string id) => 

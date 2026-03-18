@@ -1,4 +1,7 @@
-using SyncSphere.Services;
+using Microsoft.Extensions.Options;
+using MongoDB.Driver;
+using SyncSphere.Models;
+using SyncSphere.Settings;
 
 namespace SyncSphere.Services
 {
@@ -25,11 +28,13 @@ namespace SyncSphere.Services
                 using (var scope = _serviceProvider.CreateScope())
                 {
                     // We get the MeetingsService to talk to MongoDB
-                    var meetingsService = scope.ServiceProvider.GetRequiredService<MeetingsService>();
+                    var database = scope.ServiceProvider.GetRequiredService<IMongoDatabase>();
+                    var settings = scope.ServiceProvider.GetRequiredService<IOptions<MongoDbSettings>>().Value;
+                    var meetingsCollection = database.GetCollection<Meeting>(settings.MeetingsCollectionName);
 
                     // 1. Get all meetings from MongoDB
                     // In a real app, you would filter for meetings starting in the next 10 minutes
-                    var allMeetings = await meetingsService.GetAllAsync();
+                    var allMeetings = await meetingsCollection.Find(_ => true).ToListAsync();
 
                     foreach (var meeting in allMeetings)
                     {

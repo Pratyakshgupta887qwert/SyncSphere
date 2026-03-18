@@ -2,28 +2,40 @@ using Microsoft.AspNetCore.Mvc;
 using SyncSphere.Models;
 using SyncSphere.Services;
 
-namespace SyncSphere.Controllers {
+namespace SyncSphere.Controllers 
+{
     [ApiController]
     [Route("api/[controller]")] 
-    public class MeetingsController : ControllerBase {
+    public class MeetingsController : ControllerBase 
+    {
         private readonly MeetingsService _service;
 
         public MeetingsController(MeetingsService service) => _service = service;
 
         [HttpPost]
-        public async Task<IActionResult> Post(Meeting meeting) {
+        public async Task<IActionResult> Post(Meeting meeting) 
+        {
             await _service.CreateAsync(meeting);
             return Ok(meeting);
         }
 
         [HttpGet]
-        public async Task<List<Meeting>> Get() => await _service.GetAllAsync();
+        public async Task<IActionResult> Get([FromQuery] string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                return BadRequest("Query parameter 'email' is required.");
+            }
 
-        // --- ADDED THIS FOR DELETE ---
+            var meetings = await _service.GetByEmailAsync(email);
+            return Ok(meetings);
+        }
+
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(string id) {
+        public async Task<IActionResult> Delete(string id) 
+        {
             await _service.RemoveAsync(id);
-            return NoContent(); // Success, returns 204
+            return NoContent(); 
         }
     }
 }
