@@ -78,7 +78,7 @@ const Dashboard = () => {
     <div className="min-h-screen bg-slate-50 flex flex-col">
       <Header onLogout={handleLogout} />
 
-      <main className="flex-grow px-8 py-12 max-w-7xl mx-auto w-full relative">
+      <main className="flex-grow px-8 py-12 max-w-7xl mx-auto w-full relative text-left">
         <div className="flex justify-between items-end mb-12 border-b border-gray-200 pb-8">
           <div className="flex items-center gap-6">
             <div className="w-16 h-16 rounded-2xl bg-red-700 text-white flex items-center justify-center text-2xl font-black shadow-lg shadow-red-200">
@@ -103,7 +103,7 @@ const Dashboard = () => {
 
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-4">
-            <h3 className="font-black uppercase tracking-widest text-sm text-slate-500 mb-4">Your Schedule</h3>
+            <h3 className="font-black uppercase tracking-widest text-sm text-slate-500 mb-4 text-left">Your Schedule</h3>
             {meetings.length === 0 ? (
               <div className="bg-white border-2 border-dashed border-gray-200 rounded-xl p-20 text-center">
                 <Calendar className="mx-auto text-gray-300 mb-4" size={48} />
@@ -121,7 +121,7 @@ const Dashboard = () => {
               <div className="absolute -right-4 -top-4 text-slate-800 opacity-20 group-hover:scale-110 transition-transform duration-700">
                 <Globe size={120} />
               </div>
-              <div className="relative z-10">
+              <div className="relative z-10 text-left">
                 <div className="flex items-center gap-2 mb-6">
                   <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
                   <h4 className="font-bold uppercase tracking-[0.2em] text-[10px] text-red-500">Live System Time</h4>
@@ -137,7 +137,7 @@ const Dashboard = () => {
 
             <div className="bg-white p-8 border border-gray-100 rounded-2xl shadow-sm">
               <div className="flex justify-between items-center mb-8">
-                <div className="flex flex-col">
+                <div className="flex flex-col text-left">
                   <h4 className="font-black uppercase tracking-[0.15em] text-[11px] text-slate-900">
                     {viewDate.toLocaleString('default', { month: 'long' })} {viewDate.getFullYear()}
                   </h4>
@@ -194,14 +194,12 @@ const AddMeetingModal = ({ user, onClose, onRefresh }) => {
   const [formData, setFormData] = useState({
     title: '',
     scheduledTime: '',
-    hostTimezone: 'UTC'
+    hostTimezone: 'Asia/Kolkata' 
   });
 
-  // LUXON PREVIEW LOGIC
-  const getISTPreview = () => {
+  const getPreview = () => {
     if (!formData.scheduledTime) return null;
-    return DateTime.fromISO(formData.scheduledTime, { zone: "UTC" })
-      .setZone("Asia/Kolkata")
+    return DateTime.fromISO(formData.scheduledTime, { zone: formData.hostTimezone })
       .toFormat("dd MMM, hh:mm a");
   };
 
@@ -209,9 +207,7 @@ const AddMeetingModal = ({ user, onClose, onRefresh }) => {
     e.preventDefault();
     setLoading(true);
     try {
-      // FORCE LUXON TO TREAT INPUT AS UTC
-      const utcTime = DateTime.fromISO(formData.scheduledTime, { zone: "UTC" }).toUTC().toISO();
-
+      const utcTime = DateTime.fromISO(formData.scheduledTime, { zone: formData.hostTimezone }).toUTC().toISO();
       const payload = {
         title: formData.title,
         hostEmail: user.email,
@@ -240,16 +236,27 @@ const AddMeetingModal = ({ user, onClose, onRefresh }) => {
             onChange={(e) => setFormData({...formData, title: e.target.value})} />
           
           <div>
-            <label className="text-[10px] font-black uppercase text-slate-400 mb-2 block tracking-widest">1. Original Meeting Time (UTC)</label>
+            <label className="text-[10px] font-black uppercase text-slate-400 mb-2 block tracking-widest text-left">1. Select Timezone</label>
+            <select 
+              className="w-full p-4 bg-slate-50 border rounded-xl outline-none font-bold text-sm"
+              value={formData.hostTimezone}
+              onChange={(e) => setFormData({...formData, hostTimezone: e.target.value})}
+            >
+              {TIMEZONES.map(tz => <option key={tz} value={tz}>{tz.replace('_', ' ')}</option>)}
+            </select>
+          </div>
+
+          <div>
+            <label className="text-[10px] font-black uppercase text-slate-400 mb-2 block tracking-widest text-left">2. Meeting Time (Local)</label>
             <input required type="datetime-local" className="w-full p-4 bg-slate-50 border rounded-xl outline-none"
               onChange={(e) => setFormData({...formData, scheduledTime: e.target.value})} />
           </div>
 
           {formData.scheduledTime && (
-            <div className="bg-red-50 p-4 rounded-xl border border-red-100 border-dashed">
-              <p className="text-[9px] font-black text-red-500 uppercase tracking-widest">2. Converted to Indian Time (IST)</p>
-              <p className="text-lg font-bold text-slate-900 mt-1">{getISTPreview()}</p>
-              <p className="text-[10px] text-slate-400 font-medium italic mt-1">* Added 5 hours 30 minutes automatically.</p>
+            <div className="bg-red-50 p-4 rounded-xl border border-red-100 border-dashed text-left">
+              <p className="text-[9px] font-black text-red-500 uppercase tracking-widest">Confirmation Preview</p>
+              <p className="text-lg font-bold text-slate-900 mt-1">{getPreview()}</p>
+              <p className="text-[10px] text-slate-400 font-medium italic mt-1">* Saving as UTC in Cloud.</p>
             </div>
           )}
 
@@ -263,11 +270,10 @@ const AddMeetingModal = ({ user, onClose, onRefresh }) => {
 };
 
 const MeetingCard = ({ meeting, onDelete }) => {
-  // LUXON CARD DISPLAY LOGIC
   const istDisplay = DateTime.fromISO(meeting.scheduledTime).setZone("Asia/Kolkata").toFormat("dd MMM, hh:mm a");
 
   return (
-    <div className="bg-white p-6 border-l-4 border-red-700 shadow-sm hover:shadow-md transition-all flex justify-between items-center group">
+    <div className="bg-white p-6 border-l-4 border-red-700 shadow-sm hover:shadow-md transition-all flex justify-between items-center group text-left">
       <div>
         <h4 className="text-xl font-bold text-slate-800">{meeting.title}</h4>
         <div className="flex flex-col mt-2 gap-1">
