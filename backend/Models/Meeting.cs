@@ -1,8 +1,10 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace SyncSphere.Models {
-    public class Meeting {
+namespace SyncSphere.Models 
+{ 
+    public class Meeting 
+    {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string? Id { get; set; }

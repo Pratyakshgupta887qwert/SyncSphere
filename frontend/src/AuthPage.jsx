@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import Footer from './Footer';
 import { GoogleLogin } from '@react-oauth/google';
 
 const AuthPage = () => {
@@ -18,11 +17,27 @@ const AuthPage = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // --- NEW: Handle Google Response ---
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      const res = await axios.post(`http://localhost:5162/api/auth/google`, {
+        idToken: credentialResponse.credential 
+      });
+
+      if (res.status === 200) {
+        localStorage.setItem('user', JSON.stringify(res.data));
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      console.error("Google Auth Error:", error);
+      alert(error.response?.data || "Google Login failed. Check backend configuration.");
+    }
+  };
+
   const handleAuth = async (e) => {
     e.preventDefault();
     const endpoint = isLogin ? 'login' : 'register';
     
-    // Create the exact payload the C# DTO expects
     const payload = isLogin 
       ? { email: formData.email, password: formData.password }
       : { name: formData.name, email: formData.email, password: formData.password };
@@ -37,9 +52,7 @@ const AuthPage = () => {
         navigate('/dashboard');
       }
     } catch (error) {
-      console.error("Auth Error:", error);
-      // This shows the specific message from your C# 'return BadRequest("...")'
-      alert(error.response?.data || "Connection failed. Is the backend running?");
+      alert(error.response?.data || "Connection failed.");
     }
   };
 
@@ -113,6 +126,26 @@ const AuthPage = () => {
               />
             </div>
 
+            <div className="relative flex items-center w-full my-8">
+              <div className="flex-grow border-t border-gray-100"></div>
+              <span className="flex-shrink mx-4 text-[10px] font-black uppercase text-gray-300 tracking-[0.3em]">Or use Email</span>
+              <div className="flex-grow border-t border-gray-100"></div>
+            </div>
+
+<div className="flex flex-col items-center mb-6">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => alert('Google Login Failed')}
+              useOneTap
+              shape="pill"
+              theme="outline"
+              size="large"
+              width="100%"
+            />
+            
+            
+          </div>
+
             <button 
               type="submit"
               className="w-full bg-red-700 text-white py-5 rounded-xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-red-800 shadow-xl shadow-red-100 transition-all transform active:scale-[0.98] mt-4"
@@ -130,7 +163,7 @@ const AuthPage = () => {
       </div>
       
       <p className="mt-8 text-xs text-gray-400 max-w-xs text-center leading-relaxed">
-        By continuing, you agree to SyncSphere's Terms of Service and Privacy Policy. We respect your privacy and will never share your information without your consent.<br></br> Pratyaksh Gupta all rights reserved. &copy; 2026
+        Pratyaksh Gupta all rights reserved. &copy; 2026
       </p>
     </div>
   );
