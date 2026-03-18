@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Footer from './Footer';
+import { GoogleLogin } from '@react-oauth/google';
 
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
