@@ -8,12 +8,21 @@ const Header = () => {
   const [user, setUser] = useState(null);
   const [utcTime, setUtcTime] = useState(new Date());
 
+  const parseStoredUser = (rawUser) => {
+    if (!rawUser) return null;
+    try {
+      const parsed = JSON.parse(rawUser);
+      return parsed && typeof parsed === 'object' ? parsed : null;
+    } catch {
+      localStorage.removeItem('user');
+      return null;
+    }
+  };
+
   // 1. Sync User State and UTC Clock
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
+    setUser(parseStoredUser(savedUser));
 
     const timer = setInterval(() => setUtcTime(new Date()), 60000);
     return () => clearInterval(timer);
@@ -107,11 +116,11 @@ const Header = () => {
             {user ? (
               <div className="flex items-center space-x-6">
                 <span className="text-red-700 border-b-2 border-red-700 pb-1 lowercase first-letter:uppercase">
-                  Hi, {user.name.split(' ')[0]}
+                  Hi, {(user.name || user.email || 'member').split(' ')[0]}
                 </span>
                 <div
                   onClick={handleLogout}
-                  className="group relative cursor-pointer flex items-center hover:text-red-600 transition-colors"
+                  className="group relative cursor-pointer flex items-center hover:text-red-600 transition-colors pr-20"
                 >
                   Log OUT <span className="ml-2"> <LogOut size={20} /></span>
                 </div>
@@ -123,9 +132,9 @@ const Header = () => {
             )}
           </nav>
 
-          <button className="border-2 border-red-600 text-red-600 px-6 py-2 text-sm font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all duration-300">
+          {/* <button className="border-2 border-red-600 text-red-600 px-6 py-2 text-sm font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all duration-300">
             ADD NEW MEETING SCHEDULE
-          </button>
+          </button> */}
         </div>
       </div>
     </header>

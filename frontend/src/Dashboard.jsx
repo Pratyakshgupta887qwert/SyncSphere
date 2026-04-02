@@ -19,10 +19,21 @@ const Dashboard = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [viewDate, setViewDate] = useState(new Date());
 
+  const parseStoredUser = (rawUser) => {
+    if (!rawUser) return null;
+    try {
+      const parsed = JSON.parse(rawUser);
+      return parsed && typeof parsed === 'object' ? parsed : null;
+    } catch {
+      localStorage.removeItem('user');
+      return null;
+    }
+  };
+
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      const userData = JSON.parse(savedUser);
+    const userData = parseStoredUser(savedUser);
+    if (userData) {
       setUser(userData);
       fetchMeetings(userData.email);
     } else {
