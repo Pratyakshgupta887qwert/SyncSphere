@@ -35,7 +35,7 @@ const LandingPage = () => {
             A simple platform to schedule, manage, and remind your team about global meetings. 
             No more manual calculations—just seamless coordination.
           </p>
-          <div className="mt-10 flex gap-4 justify-center">
+          <div className="mt-10 flex gap-4 justify-center pb-25">
             <Link to="/auth">
               <button className="bg-red-700 text-white px-10 py-4 font-black uppercase tracking-widest hover:bg-red-800 transition-all shadow-xl shadow-red-200 active:scale-95 mb-22">
                 Get Started & Schedule Your First Sync
